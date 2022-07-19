@@ -819,6 +819,7 @@ func swapRegPair(words []string) {
         src = bytes.Replace(src, []byte("${fee}"), []byte(fee_str), -1)
         src = bytes.Replace(src, []byte("${symbol}"), []byte(tokenA + ":" + tokenB), -1)
         src = bytes.Replace(src, []byte("${decimals}"), []byte("0"), -1)
+        src = bytes.Replace(src, []byte("${name}"), []byte("Liquidity for swap pair " + tokenA + ":" + tokenB), -1)
 
         txid, res := d.DeroDeploySC(src)
 
