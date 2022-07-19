@@ -21,8 +21,8 @@ import (
 	"github.com/holiman/uint256"
 )
 
-var bridgeRegistry = "d6d3fbe9d3f397d2f576354f54f4aea06bfc8e0ab37f6c9223ddcfdbb20380cd"
-var swapRegistry = "e113fe553611142ea7054531abc8c89ad00ad2d4d386b264599b8010f17f53ff"
+var bridgeRegistry = "ab102b06a7e1c5c3909e3ca87813ede0ac1e60a309cebe96296f4423a14c14c8"
+var swapRegistry = "a601d9447bcd060bc2aa66801241b54b80a170f384c77ad3e92e1f910fabc4dd"
 
 var testnet bool
 var wallet_password string
@@ -278,7 +278,7 @@ func main() {
 	if os.Getenv("USE_BIG_TABLE") != "" {
 		d.DeroInitLookupTable(1, 1<<24);
 	} else {
-		d.DeroInitLookupTable(8, 1<<21);
+		d.DeroInitLookupTable(2, 1<<21);
 	}
 
 	displayTokens()
