@@ -785,8 +785,15 @@ func swapRegPair(words []string) {
 
 	tokenA := strings.ToUpper(words[0])
 	tokenB := strings.ToUpper(words[1])
+	tokA := tokens[tokenA]
+	tokB := tokens[tokenB]
 
-	if tokens[tokenA].contract == "" || tokens[tokenB].contract == "" {
+	if tokenA == tokenB {
+		fmt.Println("a token cannot pair with itself")
+		return
+	}
+
+	if tokA.contract == "" || tokB.contract == "" {
 		fmt.Println("both tokens must be registered")
 		return
 	}
@@ -807,9 +814,11 @@ func swapRegPair(words []string) {
 		return
         }
 
-        src = bytes.Replace(src, []byte("${asset1}"), []byte(tokens[tokenA].contract), -1)
-        src = bytes.Replace(src, []byte("${asset2}"), []byte(tokens[tokenB].contract), -1)
+        src = bytes.Replace(src, []byte("${asset1}"), []byte(tokA.contract), -1)
+        src = bytes.Replace(src, []byte("${asset2}"), []byte(tokB.contract), -1)
         src = bytes.Replace(src, []byte("${fee}"), []byte(fee_str), -1)
+        src = bytes.Replace(src, []byte("${symbol}"), []byte(tokenA + ":" + tokenB), -1)
+        src = bytes.Replace(src, []byte("${decimals}"), []byte("0"), -1)
 
         txid, res := d.DeroDeploySC(src)
 
