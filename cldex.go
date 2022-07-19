@@ -193,7 +193,7 @@ func displayTokens() {
 			bridge_check = "\u2714"
 		}
 
-		fmt.Printf("%-10s %64s    %s       %s    %18.9f\n", key, tok.contract, swap_check, bridge_check, bal)
+		fmt.Printf("%-10s %64s    %s       %s    %18.7f\n", key, tok.contract, swap_check, bridge_check, bal)
 	}
 
 	fmt.Printf("\n")
@@ -213,7 +213,7 @@ func multDiv(a uint64, b uint64, c uint64) (uint64) {
 func displayPairs() {
 	getPairs()
 
-	fmt.Printf("%-20s %37s %10s %37s\n\n", "PAIR", "TOTAL LIQUIDITY", "OWNERSHIP", "YOUR BALANCE")
+	fmt.Printf("%-20s %36s %10s %36s\n\n", "PAIR", "TOTAL LIQUIDITY", "OWNERSHIP", "YOUR BALANCE")
 	for key, pair := range pairs {
 		if pair.sharesOutstanding > 0 {
 			s := strings.Split(key, ":")
@@ -232,9 +232,9 @@ func displayPairs() {
 			bal1 := d.DeroFormatMoneyPrecision(bal1_uint64, tokenA.decimals)
 			bal2 := d.DeroFormatMoneyPrecision(bal2_uint64, tokenB.decimals)
 
-			fmt.Printf("%-20s %18.9f/%18.9f %9.3f%% %18.9f/%18.9f\n", key, val1, val2, ownerShip, bal1, bal2)
+			fmt.Printf("%-20s %18.7f/%18.7f %7.3f%% %18.7f/%18.7f\n", key, val1, val2, ownerShip, bal1, bal2)
 		} else {
-			fmt.Printf("%-20s %18.9f/%18.9f %9.3f%% %18.9f/%18.9f\n", key, 0.0, 0.0, 0.0, 0.0, 0.0)
+			fmt.Printf("%-20s %18.7f/%18.7f %7.3f%% %18.7f/%18.7f\n", key, 0.0, 0.0, 0.0, 0.0, 0.0)
 		}
 	}
 }
