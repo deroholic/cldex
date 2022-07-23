@@ -587,7 +587,7 @@ func swap(words []string) {
 	tokenB := tokens[symbols[1]]
 
 	if words[2] != symbols[0] && words[2] != symbols[1] {
-		fmt.Printf("symbol %s is not a member of the swap pair %s\n", words[2], words[0])
+		fmt.Printf("HERE symbol %s is not a member of the swap pair %s\n", words[2], words[0])
 		return
 	}
 
@@ -876,7 +876,7 @@ func printHelp() {
 	fmt.Println("pairs")
 	fmt.Println("addliqudity <pair> <amount> <symbol>")
 	fmt.Println("remliqudity <pair> <percent>")
-	fmt.Println("swap <pair> <symbol> <amount>")
+	fmt.Println("swap <pair> <amount> <symbol>")
 	fmt.Println("status <pair>")
 }
 
