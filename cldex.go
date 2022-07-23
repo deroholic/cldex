@@ -522,7 +522,7 @@ func addLiquidity(words []string) {
 
 func status(words []string) {
 	if len(words) != 1 {
-		fmt.Println("remliquidity requires 1 arguments")
+		fmt.Println("status requires 1 arguments")
 		printHelp()
 		return
 	}
@@ -566,7 +566,7 @@ func status(words []string) {
 
 func swap(words []string) {
 	if len(words) != 3 {
-		fmt.Println("remliquidity requires 3 arguments")
+		fmt.Println("swap requires 3 arguments")
 		printHelp()
 		return
 	}
