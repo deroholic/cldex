@@ -847,6 +847,12 @@ func swapRegPair(words []string) {
 		return
 	}
 
+	c, c_valid := d.DeroGetVar(txid, "C")
+	if !c_valid || len(c) == 0 {
+		fmt.Println("contract failed to initialize")
+		return
+	}
+
 	var transfers []rpc.Transfer
 	var args rpc.Arguments
 	args = append(args, rpc.Argument {"entrypoint", rpc.DataString, "RegisterPair"})
