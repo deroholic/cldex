@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"sync"
 	"time"
-	"bytes"
 	"math"
 	"math/big"
 	"encoding/hex"
@@ -21,8 +20,8 @@ import (
 	"github.com/holiman/uint256"
 )
 
-var bridgeRegistry = "ab102b06a7e1c5c3909e3ca87813ede0ac1e60a309cebe96296f4423a14c14c8"
-var swapRegistry = "a601d9447bcd060bc2aa66801241b54b80a170f384c77ad3e92e1f910fabc4dd"
+var bridgeRegistry = "f2929ad64c66d10c7af0c5c12700d12c46c85f0a14c3059d6da5d80bce9be0f5"
+var swapRegistry = "aec11d6ad6d56816392096457eb811cea602dcd3ab282ef4310154a1c26900f0"
 
 var testnet bool
 var wallet_password string
@@ -313,6 +312,7 @@ func callBridge(scid string, eth_addr string, amount uint64, fee uint64) bool {
         args = append(args, rpc.Argument {"entrypoint", rpc.DataString, "Bridge"})
         args = append(args, rpc.Argument {"eth_addr", rpc.DataString, eth_addr})
 
+//	txid, b := d.DeroSafeCallSC(scid, transfers, args)
 	txid, b := d.DeroCallSC(scid, transfers, args, 0)
 
 	if !b {
@@ -510,7 +510,7 @@ func addLiquidity(words []string) {
 	var args rpc.Arguments
 	args = append(args, rpc.Argument {"entrypoint", rpc.DataString, "AddLiquidity"})
 
-	txid, b := d.DeroCallSC(pair.contract, transfers, args, 0)
+	txid, b := d.DeroSafeCallSC(pair.contract, transfers, args)
 
 	if !b {
 		fmt.Println("Transaction failed.")
@@ -651,7 +651,7 @@ func swap(words []string) {
 	var args rpc.Arguments
 	args = append(args, rpc.Argument {"entrypoint", rpc.DataString, "Swap"})
 
-	txid, b := d.DeroCallSC(pair.contract, transfers, args, 0)
+	txid, b := d.DeroSafeCallSC(pair.contract, transfers, args)
 
 	if !b {
 		fmt.Println("Transaction failed.")
@@ -723,7 +723,7 @@ func remLiquidity(words []string) {
 	var args rpc.Arguments
 	args = append(args, rpc.Argument {"entrypoint", rpc.DataString, "RemoveLiquidity"})
 
-	txid, b := d.DeroCallSC(pair.contract, transfers, args, 0)
+	txid, b := d.DeroSafeCallSC(pair.contract, transfers, args)
 
 	if !b {
 		fmt.Println("Transaction failed.")
@@ -763,7 +763,7 @@ func swapRegToken(words []string) {
 		args = append(args, rpc.Argument {"scid", rpc.DataString, words[0]})
 		args = append(args, rpc.Argument {"decimals", rpc.DataUint64, uint64(dec)})
 
-		txid, b := d.DeroCallSC(swapRegistry, transfers, args, 0)
+		txid, b := d.DeroSafeCallSC(swapRegistry, transfers, args)
 
 		if !b {
 			fmt.Println("Transaction failed.")
@@ -807,6 +807,7 @@ func swapRegPair(words []string) {
 	}
 
 	fee_str, _ := d.DeroGetVar(swapRegistry, "fee")
+	fee, _ := strconv.Atoi(fee_str)
 
         src, err := ioutil.ReadFile("ps_pair.bas")
         if err != nil {
@@ -814,14 +815,14 @@ func swapRegPair(words []string) {
 		return
         }
 
-        src = bytes.Replace(src, []byte("${asset1}"), []byte(tokA.contract), -1)
-        src = bytes.Replace(src, []byte("${asset2}"), []byte(tokB.contract), -1)
-        src = bytes.Replace(src, []byte("${fee}"), []byte(fee_str), -1)
-        src = bytes.Replace(src, []byte("${symbol}"), []byte(tokenA + ":" + tokenB), -1)
-        src = bytes.Replace(src, []byte("${decimals}"), []byte("0"), -1)
-        src = bytes.Replace(src, []byte("${name}"), []byte("Liquidity for swap pair " + tokenA + ":" + tokenB), -1)
+        var args rpc.Arguments
+        args = append(args, rpc.Argument {"asset1", rpc.DataString, tokA.contract})
+        args = append(args, rpc.Argument {"asset2", rpc.DataString, tokB.contract})
+        args = append(args, rpc.Argument {"fee", rpc.DataUint64, uint64(fee)})
+        args = append(args, rpc.Argument {"symbol", rpc.DataString, tokenA + ":" + tokenB})
+        args = append(args, rpc.Argument {"name", rpc.DataString, "Liquidity for swap pair " + tokenA + ":" + tokenB})
 
-        txid, res := d.DeroDeploySC(src)
+        txid, res := d.DeroSafeDeploy(src, args)
 
 	if !res {
 		fmt.Println("Transaction failed.")
@@ -854,13 +855,13 @@ func swapRegPair(words []string) {
 	}
 
 	var transfers []rpc.Transfer
-	var args rpc.Arguments
+	args = []rpc.Argument{}
 	args = append(args, rpc.Argument {"entrypoint", rpc.DataString, "RegisterPair"})
 	args = append(args, rpc.Argument {"tokenA", rpc.DataString, tokenA})
 	args = append(args, rpc.Argument {"tokenB", rpc.DataString, tokenB})
 	args = append(args, rpc.Argument {"scid", rpc.DataString, txid})
 
-	txid, b := d.DeroCallSC(swapRegistry, transfers, args, 0)
+	txid, b := d.DeroSafeCallSC(swapRegistry, transfers, args)
 
 	if !b {
 		fmt.Println("Transaction failed.")
