@@ -310,8 +310,7 @@ func callBridge(scid string, eth_addr string, amount uint64, fee uint64) bool {
         args = append(args, rpc.Argument {"entrypoint", rpc.DataString, "Bridge"})
         args = append(args, rpc.Argument {"eth_addr", rpc.DataString, eth_addr})
 
-//	txid, b := d.DeroSafeCallSC(scid, transfers, args)
-	txid, b := d.DeroCallSC(scid, transfers, args, 0)
+	txid, b := d.DeroSafeCallSC(scid, transfers, args)
 
 	if !b {
 		fmt.Println("Transaction failed.")
