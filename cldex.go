@@ -10,8 +10,6 @@ import (
 	"time"
 	"math"
 	"math/big"
-	"encoding/hex"
-	"io/ioutil"
 
 	d "github.com/deroholic/derogo"
 	"github.com/deroproject/derohe/rpc"
@@ -733,144 +731,6 @@ func remLiquidity(words []string) {
 	fmt.Printf("Transaction submitted: txid = %s\n", txid)
 }
 
-func swapRegToken(words []string) {
-	if len(words) != 1 {
-		fmt.Println("swapregtoken requires 1 arguments")
-		return
-	}
-
-	sym, sym_valid := d.DeroGetVar(words[0], "symbol")
-	if sym == "" {
-		fmt.Printf("Cannot find SCID '%s'\n", words[0])
-		return
-	}
-
-	symbol, _ := hex.DecodeString(sym)
-
-	if tokens[string(symbol)].swapable {
-		fmt.Println("token already registered")
-		return
-	}
-
-	dec_str, dec_valid := d.DeroGetVar(words[0], "decimals")
-	dec, _ := strconv.Atoi(dec_str)
-
-	if sym_valid && dec_valid {
-		var transfers []rpc.Transfer
-		var args rpc.Arguments
-		args = append(args, rpc.Argument {"entrypoint", rpc.DataString, "RegisterToken"})
-		args = append(args, rpc.Argument {"symbol", rpc.DataString, string(symbol)})
-		args = append(args, rpc.Argument {"scid", rpc.DataString, words[0]})
-		args = append(args, rpc.Argument {"decimals", rpc.DataUint64, uint64(dec)})
-
-		txid, b := d.DeroSafeCallSC(swapRegistry, transfers, args)
-
-		if !b {
-			fmt.Println("Transaction failed.")
-			return
-		}
-
-		fmt.Printf("Transaction submitted: txid = %s\n", txid)
-	} else {
-		fmt.Println("Cannot find valid token")
-	}
-
-}
-
-func swapRegPair(words []string) {
-	if len(words) != 2 {
-		fmt.Println("swapregpair requires 2 arguments")
-		return
-	}
-
-	tokenA := strings.ToUpper(words[0])
-	tokenB := strings.ToUpper(words[1])
-	tokA := tokens[tokenA]
-	tokB := tokens[tokenB]
-
-	if tokenA == tokenB {
-		fmt.Println("a token cannot pair with itself")
-		return
-	}
-
-	if tokA.contract == "" || tokB.contract == "" {
-		fmt.Println("both tokens must be registered")
-		return
-	}
-
-	pair1, _ := d.DeroGetVar(swapRegistry, tokenA + ":" + tokenB)
-	pair2, _ := d.DeroGetVar(swapRegistry, tokenB + ":" + tokenA)
-
-	if len(pair1) > 0 || len(pair2) > 0 {
-		fmt.Println("pair already registered")
-		return
-	}
-
-	fee_str, _ := d.DeroGetVar(swapRegistry, "fee")
-	fee, _ := strconv.Atoi(fee_str)
-
-        src, err := ioutil.ReadFile("ps_pair.bas")
-        if err != nil {
-                fmt.Println("Cannot open ps_swap.bas: %s", err)
-		return
-        }
-
-        var args rpc.Arguments
-        args = append(args, rpc.Argument {"asset1", rpc.DataString, tokA.contract})
-        args = append(args, rpc.Argument {"asset2", rpc.DataString, tokB.contract})
-        args = append(args, rpc.Argument {"fee", rpc.DataUint64, uint64(fee)})
-        args = append(args, rpc.Argument {"symbol", rpc.DataString, tokenA + ":" + tokenB})
-        args = append(args, rpc.Argument {"name", rpc.DataString, "Liquidity for swap pair " + tokenA + ":" + tokenB})
-
-        txid, res := d.DeroSafeDeploy(src, args)
-
-	if !res {
-		fmt.Println("Transaction failed.")
-		return
-	}
-
-	fmt.Printf("Install pair contract transaction submitted: txid = %s\n", txid)
-	fmt.Printf("Waiting")
-
-	var result string
-	for true {
-		result = d.DeroConfirmTx(txid, 0)
-		if result != "pending" {
-			break
-		}
-		fmt.Printf(".")
-		time.Sleep(5*time.Second)
-	}
-	fmt.Printf("\n")
-
-	if result != "confirmed" {
-		fmt.Println("Txn failed")
-		return
-	}
-
-	c, c_valid := d.DeroGetVar(txid, "C")
-	if !c_valid || len(c) == 0 {
-		fmt.Println("contract failed to initialize")
-		return
-	}
-
-	var transfers []rpc.Transfer
-	args = []rpc.Argument{}
-	args = append(args, rpc.Argument {"entrypoint", rpc.DataString, "RegisterPair"})
-	args = append(args, rpc.Argument {"tokenA", rpc.DataString, tokenA})
-	args = append(args, rpc.Argument {"tokenB", rpc.DataString, tokenB})
-	args = append(args, rpc.Argument {"scid", rpc.DataString, txid})
-
-	txid, b := d.DeroSafeCallSC(swapRegistry, transfers, args)
-
-	if !b {
-		fmt.Println("Transaction failed.")
-		return
-	}
-
-	fmt.Printf("Pair registration transaction submitted: txid = %s\n", txid)
-}
-
 func printHelp() {
 	fmt.Println("Available commands:")
 	fmt.Println("")
@@ -995,10 +855,6 @@ func commandLoop() {
 				swap(words[1:])
 			case "status":
 				status(words[1:])
-			case "swapregtoken":
-				swapRegToken(words[1:])
-			case "swapregpair":
-				swapRegPair(words[1:])
 			case "exit", "quit", "q", "bye":
 				goto exit;
 			case "":
