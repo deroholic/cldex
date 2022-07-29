@@ -586,6 +586,11 @@ func swap(words []string) {
 		return
 	}
 
+	if pair.val1 == 0 || pair.val1 == 0 {
+		fmt.Println("pair has no liquidity")
+		return
+	}
+
 	symbols := strings.Split(words[0], ":")
 	tokenA := tokens[symbols[0]]
 	tokenB := tokens[symbols[1]]
