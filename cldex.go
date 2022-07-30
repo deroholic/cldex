@@ -752,8 +752,8 @@ func printHelp() {
 	fmt.Println("transfer <token> <dero_wallet> <amount>")
 	fmt.Println("balance")
 	fmt.Println("pairs")
-	fmt.Println("addliqudity <pair> <amount> <symbol>")
-	fmt.Println("remliqudity <pair> <percent>")
+	fmt.Println("addliquidity <pair> <amount> <symbol>")
+	fmt.Println("remliquidity <pair> <percent>")
 	fmt.Println("swap <pair> <amount> <symbol>")
 	fmt.Println("status <pair>")
 }
