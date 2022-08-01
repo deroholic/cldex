@@ -336,7 +336,7 @@ func transfer(words []string) {
 	}
 
 
-	token := strings.ToUpper(words[0])
+	token := words[0]
 	tok := tokens[token]
 	scid := tok.contract
 	decimals := tok.decimals
@@ -379,7 +379,7 @@ func bridge(words []string) {
 		return
 	}
 
-	token := strings.ToUpper(words[0])
+	token := words[0]
 	if token == "DERO" {
 		fmt.Println("Cannot bridge DERO (yet).")
 		return
@@ -414,8 +414,6 @@ func addLiquidity(words []string) {
 
 	getPairs()
 
-	words[0] = strings.ToUpper(words[0])
-	words[2] = strings.ToUpper(words[2])
 	pair := pairs[words[0]]
 
 	if len(pair.contract) == 0 {
@@ -533,7 +531,6 @@ func status(words []string) {
 
 	getPairs()
 
-	words[0] = strings.ToUpper(words[0])
 	pair := pairs[words[0]]
 
 	if len(pair.contract) == 0 {
@@ -577,8 +574,6 @@ func swap(words []string) {
 
 	getPairs()
 
-	words[0] = strings.ToUpper(words[0])
-	words[2] = strings.ToUpper(words[2])
 	pair := pairs[words[0]]
 
 	if len(pair.contract) == 0 {
@@ -679,7 +674,6 @@ func remLiquidity(words []string) {
 
 	getPairs()
 
-	words[0] = strings.ToUpper(words[0])
 	pair := pairs[words[0]]
 
 	if len(pair.contract) == 0 {
