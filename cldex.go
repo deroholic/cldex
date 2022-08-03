@@ -655,7 +655,11 @@ func swap(words []string) {
 	var args rpc.Arguments
 	args = append(args, rpc.Argument {"entrypoint", rpc.DataString, "Swap"})
 
-	txid, b := d.DeroSafeCallSC(pair.contract, transfers, args)
+//      GasEstimation is sometime returning a value too low to be accepted by derod:
+//      	"ejected due to low fees  provided fee 95 calculated fee 100"
+//	until this is fixed in the core, just let the daemon estimate fees itself by sending a 0 fee
+//	txid, b := d.DeroSafeCallSC(pair.contract, transfers, args)
+	txid, b := d.DeroCallSC(pair.contract, transfers, args, 0)
 
 	if !b {
 		fmt.Println("Transaction failed.")
