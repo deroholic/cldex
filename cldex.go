@@ -650,8 +650,12 @@ func swap(words []string) {
 	}
 
 	var transfers []rpc.Transfer
-	transfers = d.DeroBuildTransfers(transfers, tokenA.contract, d.DeroGetRandomAddress(), 0, amt1)
-	transfers = d.DeroBuildTransfers(transfers, tokenB.contract, d.DeroGetRandomAddress(), 0, amt2)
+	if amt1 > 0 {
+		transfers = d.DeroBuildTransfers(transfers, tokenA.contract, d.DeroGetRandomAddress(), 0, amt1)
+	}
+	if amt2 > 0 {
+		transfers = d.DeroBuildTransfers(transfers, tokenB.contract, d.DeroGetRandomAddress(), 0, amt2)
+	}
 	var args rpc.Arguments
 	args = append(args, rpc.Argument {"entrypoint", rpc.DataString, "Swap"})
 
