@@ -882,7 +882,12 @@ func update_prompt() {
 		dh := d.DeroGetHeight()
 		wh := d.DeroGetWalletHeight()
 
-		p := fmt.Sprintf("%d/%d > ", wh, dh)
+		network := "MAINNET"
+                if testnet {
+                        network = "TESTNET"
+                }
+
+		p := fmt.Sprintf("%d/%d %s > ", wh, dh, network)
 		l.SetPrompt(p)
 		l.Refresh()
 
