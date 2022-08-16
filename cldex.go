@@ -239,6 +239,7 @@ func main() {
 	walletOpts()
 
 	var err error
+	var valid bool
 
 	l, err = readline.NewEx(&readline.Config{
 		Prompt:          "\033[31m»\033[0m ",
@@ -270,12 +271,13 @@ func main() {
 	d.DeroInit(daemon_address)
 	d.DeroWalletInit(daemon_address, !testnet, wallet_file, wallet_password)
 
-	if testnet {
-		bridgeRegistry = "f2929ad64c66d10c7af0c5c12700d12c46c85f0a14c3059d6da5d80bce9be0f5"
-		swapRegistry = "aec11d6ad6d56816392096457eb811cea602dcd3ab282ef4310154a1c26900f0"
-	} else {
-		bridgeRegistry = "b2a4bdf736d1fb6a18fcb36b42db849cc09ef7dc7fe7ae200791d019b42fdffc"
-		swapRegistry = "a6b36e8a23d153c5f09683183fc1059285476a1ce3f7f53952ab67b4fa34bcce"
+	bridgeRegistry, valid = d.DeroGetKeyHex("dex.bridge.registry")
+	if !valid {
+		panic("Cannot find bridge registry contract\n")
+	}
+	swapRegistry, valid = d.DeroGetKeyHex("dex.swap.registry")
+	if !valid {
+		panic("Cannot find swap registry contract\n")
 	}
 
 	fmt.Println("Building lookup tables...")
