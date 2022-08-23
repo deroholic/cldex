@@ -53,16 +53,14 @@ var zerohash crypto.Hash
 func parseOpt(param string) {
         s := strings.Split(param, "=")
 
-        if s[0] == "--testnet" {
-		testnet = true
-        } else if len(s) > 1 && s[0] == "--daemon-address" {
+        if len(s) > 1 && s[0] == "--daemon-address" {
                 daemon_address = s[1]
         } else if len(s) > 1 && s[0] == "--wallet" {
 		wallet_file = s[1]
         } else if len(s) > 1 && s[0] == "--password" {
                 wallet_password = s[1]
         } else if s[0] == "--help" {
-                fmt.Printf("wallet [--help] [--wallet=<wallet_file> | <private_key>] [--password=<wallet_password>] [--daemon-address=<127.0.0.1:10102>] [--testnet]\n")
+                fmt.Printf("wallet [--help] [--wallet=<wallet_file> | <private_key>] [--password=<wallet_password>] [--daemon-address=<127.0.0.1:10102>]\n")
                 os.Exit(0)
         } else {
                 fmt.Printf("invalid argument '%s', skipping\n", param)
@@ -269,8 +267,13 @@ func main() {
 	}
 
 	d.DeroInit(daemon_address)
-	d.DeroWalletInit(daemon_address, !testnet, wallet_file, wallet_password)
 
+	var mainnet uint64
+
+	mainnet, valid = d.DeroGetKeyUint64("mainnet")
+	if !valid {
+		panic("Cannot determine network\n")
+	}
 	bridgeRegistry, valid = d.DeroGetKeyHex("dex.bridge.registry")
 	if !valid {
 		panic("Cannot find bridge registry contract\n")
@@ -279,6 +282,11 @@ func main() {
 	if !valid {
 		panic("Cannot find swap registry contract\n")
 	}
+
+	if mainnet == 0 {
+		testnet = true
+	}
+	d.DeroWalletInit(daemon_address, !testnet, wallet_file, wallet_password)
 
 	fmt.Println("Building lookup tables...")
 	if os.Getenv("USE_BIG_TABLE") != "" {
