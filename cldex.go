@@ -571,6 +571,8 @@ func status(words []string) {
 		fmt.Printf("1.0 %s = unknown %s\n", symbols[1], symbols[0])
 	}
 	fmt.Println()
+	fmt.Printf("Bridge fee %4.2f%%\n", float64(pair.fee) / 100.0)
+	fmt.Println()
 
 	fmt.Printf("Adds / Removes / Swaps (%d / %d / %d)\n", pair.adds, pair.rems, pair.swaps)
 }
