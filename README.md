@@ -19,6 +19,6 @@ DERO Command Line DEX
 ## Usage:
 ```
 $ ./cldex --help
-cldex [--help] [--wallet=<wallet_file> | <private_key>] [--password=<wallet_password>] [--daemon-address=<127.0.0.1:10102>] [--testnet]
+cldex [--help] [--wallet=<wallet_file> | <private_key>] [--password=<wallet_password>] [--daemon-address=<127.0.0.1:10102>]
 ```
 <img width="1335" alt="PastedGraphic-3" src="https://user-images.githubusercontent.com/105595360/179622625-ca5a328b-20e3-4498-a952-b2050ade2e11.png">
