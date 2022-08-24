@@ -275,9 +275,13 @@ func displayPairs() {
 	fmt.Printf("TLV: %.2f USDT\n", tlv)
 }
 
-func conversion(tok1 string, tok2 string) (ratio float64, path string) {
-	n1 := tokens[tok1].n
-	n2 := tokens[tok2].n
+func conversion(sym1 string, sym2 string) (ratio float64, path string) {
+	if tokens[sym1] == (Token{}) || tokens[sym2] == (Token{}) {
+		return
+	}
+
+	n1 := tokens[sym1].n
+	n2 := tokens[sym2].n
 
 	p, d := graph.ShortestPath(tokenGraph, n1, n2)
 	if d == -1 {
@@ -287,7 +291,7 @@ func conversion(tok1 string, tok2 string) (ratio float64, path string) {
 	ratio = float64(1.0)
 
 	n := n1
-	path = tok1
+	path = sym1
 
 	for i := 1; i < len(p); i++ {
 		ratio *= (float64(tokenGraph.Cost(n, p[i])) / math.Pow(10, 7))
