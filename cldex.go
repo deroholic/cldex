@@ -234,6 +234,7 @@ func multDiv(a uint64, b uint64, c uint64) (uint64) {
 }
 
 func displayPairs() {
+	tlv := float64(0)
 	getPairs()
 
 	fmt.Printf("%-20s %36s %10s %36s\n\n", "PAIR", "TOTAL LIQUIDITY", "OWNERSHIP", "YOUR BALANCE")
@@ -255,16 +256,26 @@ func displayPairs() {
 			bal1 := d.DeroFormatMoneyPrecision(bal1_uint64, tokenA.decimals)
 			bal2 := d.DeroFormatMoneyPrecision(bal2_uint64, tokenB.decimals)
 
+			ratio1, _ := conversion(s[0], "DUSDT")
+			ratio2, _ := conversion(s[1], "DUSDT")
+
+			val1_float, _ := val1.Float64()
+			val2_float, _ := val2.Float64()
+
+			tlv += val1_float * ratio1
+			tlv += val2_float * ratio2
+
 			fmt.Printf("%-20s %18.7f/%18.7f %7.3f%% %18.7f/%18.7f\n", key, val1, val2, ownerShip, bal1, bal2)
 		} else {
 			fmt.Printf("%-20s %18.7f/%18.7f %7.3f%% %18.7f/%18.7f\n", key, 0.0, 0.0, 0.0, 0.0, 0.0)
 		}
 	}
+
+	fmt.Printf("\n")
+	fmt.Printf("TLV: %.2f USDT\n", tlv)
 }
 
 func conversion(tok1 string, tok2 string) (ratio float64, path string) {
-	getPairs()
-
 	n1 := tokens[tok1].n
 	n2 := tokens[tok2].n
 
@@ -587,6 +598,8 @@ func addLiquidity(words []string) {
 }
 
 func quote(words []string) {
+	getPairs()
+
 	if len(words) != 2 {
 		fmt.Println("quote requires 2 arguments")
 		printHelp()
