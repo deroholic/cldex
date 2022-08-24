@@ -16,6 +16,7 @@ import (
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/chzyer/readline"
 	"github.com/holiman/uint256"
+	"github.com/yourbasic/graph"
 )
 
 var bridgeRegistry string
@@ -26,6 +27,7 @@ var daemon_address = "127.0.0.1:10102"
 var testnet = false
 
 type Token struct {
+	n int
 	contract string
 	decimals int
 	bridgeFee uint64
@@ -46,6 +48,8 @@ type Pair struct {
 
 var tokens map[string]Token
 var pairs map[string]Pair
+var tokenList []string
+var tokenGraph *graph.Mutable
 
 var prompt_mutex sync.Mutex // prompt lock
 var zerohash crypto.Hash
@@ -79,6 +83,7 @@ func walletOpts() {
 
 func getTokens() {
 	tokens = make(map[string]Token)
+	n := 0
 
 	// bridgeable tokens
 	bridgeVars, bridgeValid := d.DeroGetVars(bridgeRegistry)
@@ -87,6 +92,9 @@ func getTokens() {
 			s := strings.Split(key, ":")
 			if s[0] == "s" {
 				var tok Token
+
+				tok.n = n
+				n++
 				tok.contract = value.(string)
 				tok.bridgeable = true
 
@@ -111,10 +119,13 @@ func getTokens() {
 				var tok Token = tokens[s[1]]
 
 				if tok == (Token{}) {
+					tok.n = n
+					n++
 					tok.contract = value.(string)
 
 					dec_str, _ := d.DeroGetVar(swapRegistry, "t:" + s[1] + ":d")
 					tok.decimals, _ = strconv.Atoi(dec_str)
+					tokenList = append(tokenList, s[1])
 				}
 
 				tok.swapable = true
@@ -122,10 +133,17 @@ func getTokens() {
 			}
 		}
 	}
+
+	// build list
+	tokenList = make([]string, len(tokens))
+	for k, v := range tokens {
+		tokenList[v.n] = k
+	}
 }
 
 func getPairs() {
 	pairs = make(map[string]Pair)
+	tokenGraph = graph.New(len(tokens))
 	swapVars, swapValid := d.DeroGetVars(swapRegistry)
 
 	if (swapValid) {
@@ -165,6 +183,17 @@ func getPairs() {
 				pair.sharesOutstanding = uint64(shares)
 
 				pairs[s[1] + ":" + s[2]] = pair
+
+				if pair.val1 > 0 {
+					tok1 := tokens[s[1]]
+					tok2 := tokens[s[2]]
+
+					val1_float := float64(pair.val1) / math.Pow(10, float64(tok1.decimals))
+					val2_float := float64(pair.val2) / math.Pow(10, float64(tok2.decimals))
+
+					tokenGraph.AddCost(tok1.n, tok2.n, int64(val2_float / val1_float * math.Pow(10, 7)))
+					tokenGraph.AddCost(tok2.n, tok1.n, int64(val1_float / val2_float * math.Pow(10, 7)))
+				}
 			}
 		}
 	}
@@ -231,6 +260,31 @@ func displayPairs() {
 			fmt.Printf("%-20s %18.7f/%18.7f %7.3f%% %18.7f/%18.7f\n", key, 0.0, 0.0, 0.0, 0.0, 0.0)
 		}
 	}
+}
+
+func conversion(tok1 string, tok2 string) (ratio float64, path string) {
+	getPairs()
+
+	n1 := tokens[tok1].n
+	n2 := tokens[tok2].n
+
+	p, d := graph.ShortestPath(tokenGraph, n1, n2)
+	if d == -1 {
+		return
+	}
+
+	ratio = float64(1.0)
+
+	n := n1
+	path = tok1
+
+	for i := 1; i < len(p); i++ {
+		ratio *= (float64(tokenGraph.Cost(n, p[i])) / math.Pow(10, 7))
+		path += " => " + tokenList[p[i]]
+		n = p[i]
+	}
+
+	return
 }
 
 func main() {
@@ -532,6 +586,23 @@ func addLiquidity(words []string) {
 	fmt.Printf("Transaction submitted: txid = %s\n", txid)
 }
 
+func quote(words []string) {
+	if len(words) != 2 {
+		fmt.Println("quote requires 2 arguments")
+		printHelp()
+		return
+	}
+
+	ratio, path := conversion(words[0], words[1])
+	if len(path) == 0 {
+		fmt.Printf("Cannot find path between '%s' and '%s'\n", words[0], words[1])
+		return
+	}
+
+	fmt.Printf("%s\n", path)
+	fmt.Printf("1 %s == %0.7f %s\n", words[0], ratio, words[1])
+}
+
 func status(words []string) {
 	if len(words) != 1 {
 		fmt.Println("status requires 1 arguments")
@@ -766,6 +837,7 @@ func printHelp() {
 	fmt.Println("remliquidity <pair> <percent>")
 	fmt.Println("swap <pair> <amount> <symbol>")
 	fmt.Println("status <pair>")
+	fmt.Println("quote <symbol1> <symbol2>")
 }
 
 var completer = readline.NewPrefixCompleter(
@@ -787,6 +859,7 @@ var completer = readline.NewPrefixCompleter(
 	readline.PcItem("remliquidity"),
 	readline.PcItem("swap"),
 	readline.PcItem("status"),
+	readline.PcItem("quote"),
 )
 
 func filterInput(r rune) (rune, bool) {
@@ -876,6 +949,8 @@ func commandLoop() {
 				swap(words[1:])
 			case "status":
 				status(words[1:])
+			case "quote":
+				quote(words[1:])
 			case "exit", "quit", "q", "bye":
 				goto exit;
 			case "":
