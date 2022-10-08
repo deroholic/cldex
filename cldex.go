@@ -377,6 +377,7 @@ func callTransfer(scid string, dero_addr string, amount uint64) bool {
 
 	transfers = d.DeroBuildTransfers(transfers, scid, dero_addr, amount, 0)
 
+fmt.Printf("transfers = %+v\n", transfers)
 	txid, b := d.DeroTransfer(transfers)
 	if !b {
 		fmt.Println("Transaction failed.")
@@ -695,10 +696,19 @@ func swap(words []string) {
 		return
 	}
 
-	amt_float, err := strconv.ParseFloat(words[1], 64)
-	if err != nil {
-		fmt.Printf("cannot parse amount '%s'\n", words[2])
-		return
+	bal := d.DeroGetSCBal(tokens[words[2]].contract)
+
+	var amt_float float64
+	var err error
+
+	if strings.ToLower(words[1]) == "max" {
+		amt_float = float64(bal) / math.Pow(10, float64(tokens[words[2]].decimals))
+	} else {
+		amt_float, err = strconv.ParseFloat(words[1], 64)
+		if err != nil {
+			fmt.Printf("cannot parse amount '%s'\n", words[2])
+			return
+		}
 	}
 
 	if amt_float <= 0.0 {
@@ -707,7 +717,6 @@ func swap(words []string) {
 	}
 
 	amt := uint64(amt_float * math.Pow(10, float64(tokens[words[2]].decimals)))
-	bal := d.DeroGetSCBal(tokens[words[2]].contract)
 
 	if amt > bal {
 		fmt.Println("insufficient funds")
@@ -850,7 +859,7 @@ func printHelp() {
 	fmt.Println("transfer <token> <dero_wallet> <amount>")
 	fmt.Println("balance")
 	fmt.Println("pairs")
-	fmt.Println("addliquidity <pair> <amount> <symbol>")
+	fmt.Println("addliquidity <pair> [<amount> | max] <symbol>")
 	fmt.Println("remliquidity <pair> <percent>")
 	fmt.Println("swap <pair> <amount> <symbol>")
 	fmt.Println("status <pair>")
