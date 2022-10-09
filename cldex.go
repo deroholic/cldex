@@ -510,10 +510,19 @@ func addLiquidity(words []string) {
 		return
 	}
 
-	amt_float, err := strconv.ParseFloat(words[1], 64)
-	if err != nil {
-		fmt.Printf("cannot parse amount '%s'\n", words[1])
-		return
+
+        var amt_float float64
+        var err error
+
+        if strings.ToLower(words[1]) == "max" {
+		bal := d.DeroGetSCBal(tokens[words[2]].contract)
+                amt_float = float64(bal) / math.Pow(10, float64(tokens[words[2]].decimals))
+        } else {
+		amt_float, err = strconv.ParseFloat(words[1], 64)
+		if err != nil {
+			fmt.Printf("cannot parse amount '%s'\n", words[1])
+			return
+		}
 	}
 
 	if amt_float <= 0.0 {
