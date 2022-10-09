@@ -870,7 +870,7 @@ func printHelp() {
 	fmt.Println("pairs")
 	fmt.Println("addliquidity <pair> [<amount> | max] <symbol>")
 	fmt.Println("remliquidity <pair> <percent>")
-	fmt.Println("swap <pair> <amount> <symbol>")
+	fmt.Println("swap <pair> [<amount> | max] <symbol>")
 	fmt.Println("status <pair>")
 	fmt.Println("quote <symbol1> <symbol2>")
 }
