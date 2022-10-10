@@ -377,7 +377,6 @@ func callTransfer(scid string, dero_addr string, amount uint64) bool {
 
 	transfers = d.DeroBuildTransfers(transfers, scid, dero_addr, amount, 0)
 
-fmt.Printf("transfers = %+v\n", transfers)
 	txid, b := d.DeroTransfer(transfers)
 	if !b {
 		fmt.Println("Transaction failed.")
