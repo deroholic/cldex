@@ -476,6 +476,12 @@ func bridge(words []string) {
 		return
 	}
 
+	if words[1] == strings.ToLower(words[1]) || words[1] == strings.ToUpper(words[1]) {
+		fmt.Printf("Ethereum address must be in CamelCase (mixed case) not all lower or all upper.\n")
+		fmt.Printf("Please check and try again with a different address format.\n")
+		return
+	}
+
 	fmt.Printf("Transfer %f %s to Ethereum address %s\n", d.DeroFormatMoneyPrecision(amount, tokens[token].decimals), token, words[1])
 	fmt.Printf("Bridge fee %f DERO\n", d.DeroFormatMoneyPrecision(tokens[token].bridgeFee, 5))
 
