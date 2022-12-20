@@ -493,7 +493,7 @@ func tradeHistory(words []string) {
 func tradeHelp() {
 	fmt.Println("trade buy <pair> <amount> <price>")
 	fmt.Println("trade sell <pair> <amount> <price>")
-	fmt.Println("trade cancel <orderId>")
+	fmt.Println("trade cancel <pair> <orderId>")
 	fmt.Println("trade history <pair>")
 	fmt.Println("trade orders <pair>")
 	fmt.Println("trade book <pair>")
