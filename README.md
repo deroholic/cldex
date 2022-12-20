@@ -1,7 +1,7 @@
 # cldex
 DERO Command Line DEX
 
-## Requires go v1.17
+## Requires go v1.18
 
 ## To build / run:
 
