@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	"strings"
-	"strconv"
 	"math"
-	"math/big"
+	"strconv"
+	"strings"
 
 	d "github.com/deroholic/derogo"
 	"github.com/deroproject/derohe/rpc"
@@ -15,23 +14,23 @@ import (
 var swapRegistry string
 
 type Token struct {
-	n int
-	contract string
-	decimals int
-	bridgeFee uint64
+	n          int
+	contract   string
+	decimals   int
+	bridgeFee  uint64
 	bridgeable bool
-	swapable bool
+	swapable   bool
 }
 
 type Pair struct {
-	contract string
-	fee uint64
-	val1 uint64
-	val2 uint64
+	contract          string
+	fee               uint64
+	val1              uint64
+	val2              uint64
 	sharesOutstanding uint64
-	adds uint64
-	rems uint64
-	swaps uint64
+	adds              uint64
+	rems              uint64
+	swaps             uint64
 }
 
 var tokens map[string]Token
@@ -70,7 +69,7 @@ func getTokens() {
 
 	// swappable tokens
 	swapVars, swapValid := d.DeroGetVars(swapRegistry)
-	if (swapValid) {
+	if swapValid {
 		for key, value := range swapVars {
 			s := strings.Split(key, ":")
 			if s[0] == "t" && s[2] == "c" {
@@ -81,7 +80,7 @@ func getTokens() {
 					n++
 					tok.contract = value.(string)
 
-					dec_str, _ := d.DeroGetVar(swapRegistry, "t:" + s[1] + ":d")
+					dec_str, _ := d.DeroGetVar(swapRegistry, "t:"+s[1]+":d")
 					tok.decimals, _ = strconv.Atoi(dec_str)
 					tokenList = append(tokenList, s[1])
 				}
@@ -104,7 +103,7 @@ func getPairs() {
 	tokenGraph = graph.New(len(tokens))
 	swapVars, swapValid := d.DeroGetVars(swapRegistry)
 
-	if (swapValid) {
+	if swapValid {
 		for key, value := range swapVars {
 			s := strings.Split(key, ":")
 			if s[0] == "p" {
@@ -140,7 +139,7 @@ func getPairs() {
 				shares, _ := strconv.Atoi(shares_str)
 				pair.sharesOutstanding = uint64(shares)
 
-				pairs[s[1] + ":" + s[2]] = pair
+				pairs[s[1]+":"+s[2]] = pair
 
 				if pair.val1 > 0 {
 					tok1 := tokens[s[1]]
@@ -149,8 +148,8 @@ func getPairs() {
 					val1_float := float64(pair.val1) / math.Pow(10, float64(tok1.decimals))
 					val2_float := float64(pair.val2) / math.Pow(10, float64(tok2.decimals))
 
-					tokenGraph.AddCost(tok1.n, tok2.n, int64(val2_float / val1_float * math.Pow(10, 7)))
-					tokenGraph.AddCost(tok2.n, tok1.n, int64(val1_float / val2_float * math.Pow(10, 7)))
+					tokenGraph.AddCost(tok1.n, tok2.n, int64(val2_float/val1_float*math.Pow(10, 7)))
+					tokenGraph.AddCost(tok2.n, tok1.n, int64(val1_float/val2_float*math.Pow(10, 7)))
 				}
 			}
 		}
@@ -162,15 +161,13 @@ func displayTokens() {
 
 	fmt.Printf("%-10s %-64s %-7s %-7s %18s\n\n", "TOKEN", "CONTRACT", "SWAP", "BRIDGE", "BALANCE")
 	for key, tok := range tokens {
-		var bal *big.Float
-
-		bal = d.DeroFormatMoneyPrecision(d.DeroGetSCBal(tok.contract), tok.decimals)
+		bal := d.DeroFormatMoneyPrecision(d.DeroGetSCBal(tok.contract), tok.decimals)
 		swap_check := "\u2716"
 		bridge_check := "\u2716"
-		if (tok.swapable) {
+		if tok.swapable {
 			swap_check = "\u2714"
 		}
-		if (tok.bridgeable) {
+		if tok.bridgeable {
 			bridge_check = "\u2714"
 		}
 
@@ -192,7 +189,7 @@ func displayPairs() {
 			tokenB := tokens[s[1]]
 
 			myShares := d.DeroGetSCBal(pair.contract)
-			ownerShip := float32(myShares) / float32(pair.sharesOutstanding) * 100.0;
+			ownerShip := float32(myShares) / float32(pair.sharesOutstanding) * 100.0
 
 			bal1_uint64 := multDiv(pair.val1, myShares, pair.sharesOutstanding)
 			bal2_uint64 := multDiv(pair.val2, myShares, pair.sharesOutstanding)
@@ -307,7 +304,7 @@ func status(words []string) {
 		fmt.Printf("1.0 %s = unknown %s\n", symbols[1], symbols[0])
 	}
 	fmt.Println()
-	fmt.Printf("Bridge fee %4.2f%%\n", float64(pair.fee) / 100.0)
+	fmt.Printf("Bridge fee %4.2f%%\n", float64(pair.fee)/100.0)
 	fmt.Println()
 
 	fmt.Printf("Adds / Removes / Swaps (%d / %d / %d)\n", pair.adds, pair.rems, pair.swaps)
@@ -329,7 +326,7 @@ func swap(words []string) {
 		return
 	}
 
-	if pair.val1 == 0 || pair.val1 == 0 {
+	if pair.val1 == 0 || pair.val2 == 0 {
 		fmt.Println("pair has no liquidity")
 		return
 	}
@@ -377,20 +374,20 @@ func swap(words []string) {
 		amt1 = amt
 		amt2 = 0
 		amt_float := float64(amt) / math.Pow(10, float64(tokenA.decimals))
-		result := float64(amt) * float64(pair.val2) / float64(pair.val1 + amt)
+		result := float64(amt) * float64(pair.val2) / float64(pair.val1+amt)
 		result = result * float64(10000-pair.fee) / float64(10000)
 		result_float := result / math.Pow(10, float64(tokenB.decimals))
-		slip = 100.0 - (1.0 / (1.0 + float64(amt) / float64(pair.val1)) * 100.0)
+		slip = 100.0 - (1.0 / (1.0 + float64(amt)/float64(pair.val1)) * 100.0)
 
 		fmt.Printf("Swapping %f %s for %f %s fees included (with %f%% slippage)\n", amt_float, words[2], result_float, symbols[1], slip)
 	} else {
 		amt1 = 0
 		amt2 = amt
 		amt_float := float64(amt) / math.Pow(10, float64(tokenB.decimals))
-		result := float64(amt) * float64(pair.val1) / float64(pair.val2 + amt)
+		result := float64(amt) * float64(pair.val1) / float64(pair.val2+amt)
 		result = result * float64(10000-pair.fee) / float64(10000)
 		result_float := result / math.Pow(10, float64(tokenA.decimals))
-		slip = 100.0 - (1.0 / (1.0 + float64(amt) / float64(pair.val2)) * 100.0)
+		slip = 100.0 - (1.0 / (1.0 + float64(amt)/float64(pair.val2)) * 100.0)
 
 		fmt.Printf("Swapping %f %s for %f %s fees included (with %f%% slippage)\n", amt_float, words[2], result_float, symbols[0], slip)
 	}
@@ -400,7 +397,7 @@ func swap(words []string) {
 		return
 	}
 
-	if askContinue() == false {
+	if !askContinue() {
 		fmt.Println("aborting...")
 		return
 	}
@@ -413,7 +410,7 @@ func swap(words []string) {
 		transfers = d.DeroBuildTransfers(transfers, tokenB.contract, d.DeroGetRandomAddress(), 0, amt2)
 	}
 	var args rpc.Arguments
-	args = append(args, rpc.Argument {"entrypoint", rpc.DataString, "Swap"})
+	args = append(args, rpc.Argument{"entrypoint", rpc.DataString, "Swap"})
 
 	txid, b := d.DeroSafeCallSC(pair.contract, transfers, args)
 
@@ -450,14 +447,13 @@ func addLiquidity(words []string) {
 		return
 	}
 
+	var amt_float float64
+	var err error
 
-        var amt_float float64
-        var err error
-
-        if strings.ToLower(words[1]) == "max" {
+	if strings.ToLower(words[1]) == "max" {
 		bal := d.DeroGetSCBal(tokens[words[2]].contract)
-                amt_float = float64(bal) / math.Pow(10, float64(tokens[words[2]].decimals))
-        } else {
+		amt_float = float64(bal) / math.Pow(10, float64(tokens[words[2]].decimals))
+	} else {
 		amt_float, err = strconv.ParseFloat(words[1], 64)
 		if err != nil {
 			fmt.Printf("cannot parse amount '%s'\n", words[1])
@@ -528,9 +524,8 @@ func addLiquidity(words []string) {
 		return
 	}
 
-
 	fmt.Printf("Adding liquidity to pair %s: %f %s, %f %s\n", words[0], float1, symbols[0], float2, symbols[1])
-	if askContinue() == false {
+	if !askContinue() {
 		fmt.Println("aborting...")
 		return
 	}
@@ -539,7 +534,7 @@ func addLiquidity(words []string) {
 	transfers = d.DeroBuildTransfers(transfers, tok1.contract, d.DeroGetRandomAddress(), 0, amt1)
 	transfers = d.DeroBuildTransfers(transfers, tok2.contract, d.DeroGetRandomAddress(), 0, amt2)
 	var args rpc.Arguments
-	args = append(args, rpc.Argument {"entrypoint", rpc.DataString, "AddLiquidity"})
+	args = append(args, rpc.Argument{"entrypoint", rpc.DataString, "AddLiquidity"})
 
 	txid, b := d.DeroSafeCallSC(pair.contract, transfers, args)
 
@@ -580,7 +575,7 @@ func remLiquidity(words []string) {
 
 	myShares := d.DeroGetSCBal(pair.contract)
 	if myShares <= 0 {
-		fmt.Println("You own no liquidity of pair %s\n", words[0])
+		fmt.Printf("You own no liquidity of pair %s\n", words[0])
 		return
 	}
 
@@ -588,8 +583,8 @@ func remLiquidity(words []string) {
 	tokenA := tokens[symbols[0]]
 	tokenB := tokens[symbols[1]]
 
-	bal1_uint64 := multDiv(pair.val1, myShares,  pair.sharesOutstanding)
-	bal2_uint64 := multDiv(pair.val2, myShares,  pair.sharesOutstanding)
+	bal1_uint64 := multDiv(pair.val1, myShares, pair.sharesOutstanding)
+	bal2_uint64 := multDiv(pair.val2, myShares, pair.sharesOutstanding)
 
 	bal1_float := float64(bal1_uint64) / math.Pow(10, float64(tokenA.decimals))
 	bal2_float := float64(bal2_uint64) / math.Pow(10, float64(tokenB.decimals))
@@ -602,7 +597,7 @@ func remLiquidity(words []string) {
 	fmt.Printf("Your liquidity for pair %s is %f %s, %f %s\n", words[0], bal1_float, symbols[0], bal2_float, symbols[1])
 	fmt.Printf("Remove %f%% (%f %s, %f %s)\n", percent, rem1_float, symbols[0], rem2_float, symbols[1])
 
-	if askContinue() == false {
+	if !askContinue() {
 		fmt.Println("aborting...")
 		return
 	}
@@ -610,7 +605,7 @@ func remLiquidity(words []string) {
 	var transfers []rpc.Transfer
 	transfers = d.DeroBuildTransfers(transfers, pair.contract, d.DeroGetRandomAddress(), 0, remShares)
 	var args rpc.Arguments
-	args = append(args, rpc.Argument {"entrypoint", rpc.DataString, "RemoveLiquidity"})
+	args = append(args, rpc.Argument{"entrypoint", rpc.DataString, "RemoveLiquidity"})
 
 	txid, b := d.DeroSafeCallSC(pair.contract, transfers, args)
 
