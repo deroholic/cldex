@@ -491,10 +491,10 @@ func tradeHistory(words []string) {
 }
 
 func tradeHelp() {
-        fmt.Println("dero trade buy <pair> <amount> <price>")
-        fmt.Println("dero trade sell <pair> <amount> <price>")
-        fmt.Println("dero trade cancel <orderId>")
-        fmt.Println("dero trade history <pair>")
-        fmt.Println("dero trade orders <pair>")
-        fmt.Println("dero trade book <pair>")
+        fmt.Println("trade buy <pair> <amount> <price>")
+        fmt.Println("trade sell <pair> <amount> <price>")
+        fmt.Println("trade cancel <orderId>")
+        fmt.Println("trade history <pair>")
+        fmt.Println("trade orders <pair>")
+        fmt.Println("trade book <pair>")
 }
