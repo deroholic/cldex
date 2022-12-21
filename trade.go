@@ -478,14 +478,14 @@ func tradeHistory(words []string) {
 	sort.Slice(pair.hist, func(i, j int) bool { return pair.hist[i].timestamp > pair.hist[j].timestamp })
 
 	fmt.Printf("Trade History:\n\n")
-	fmt.Printf("%-29s %19s %19s\n\n", "TIME", symbols[0], "PRICE")
+	fmt.Printf("%-29s %19s %19s\n", "TIME", fmt.Sprintf("PRICE (%s)", symbols[1]), fmt.Sprintf("AMOUNT (%s)", symbols[0]))
 
 	for _, h := range pair.hist {
 		t := time.Unix(int64(h.timestamp), 0)
 		amt1 := float64(h.v1) / math.Pow10(tokens[symbols[0]].decimals)
 		price := float64(h.v2) / 10000000.0
 
-		fmt.Printf("%29s %19f %19f\n", t, amt1, price)
+		fmt.Printf("%29s %19f %19f\n", t, price, amt1)
 	}
 
 }
