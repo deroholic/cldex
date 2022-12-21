@@ -377,7 +377,7 @@ func tradeBook(words []string) {
 	var sell []ordSum
 	var buy []ordSum
 	for _, order := range pair.orders {
-		rec := ordSum{pair.prices[order.n], order.o1, 0}
+		rec := ordSum{pair.prices[order.n], order.v1, 0}
 		if order.t == "sell" {
 			sell = append(sell, rec)
 		} else {
