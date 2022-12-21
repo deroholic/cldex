@@ -388,7 +388,7 @@ func tradeBook(words []string) {
 	buy = tradeBookSum(buy, "rev")
 	sell = tradeBookSum(sell, "fwd")
 
-	fmt.Printf("TYPE %19s %19s %19s\n", "PRICE", "AMOUNT", "TOTAL")
+	fmt.Printf("TYPE %19s %19s %19s\n", fmt.Sprintf("PRICE (%s)", symbols[1]), fmt.Sprintf("AMOUNT (%s)", symbols[0]), fmt.Sprintf("TOTAL (%s)", symbols[0]))
 	fmt.Printf("\n")
 
 	if len(sell) > 0 {
