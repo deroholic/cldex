@@ -272,8 +272,8 @@ func tradeBuy(words []string) {
 
 func tradeCancel(words []string) {
 	if len(words) != 2 {
-		fmt.Println("cancel requires 2 arguments")
-		tradeHelp()
+	fmt.Println("cancel requires 2 arguments")
+		printHelp()
 		return
 	}
 
@@ -287,15 +287,19 @@ func tradeCancel(words []string) {
 	}
 
 	tx, err := strconv.Atoi(words[1])
-	if err != nil {
+	if err != nil && strings.ToLower(words[1]) != "all" {
 		fmt.Println("invalid transaction number")
 		return
 	}
 
 	var transfers []rpc.Transfer
 	var args rpc.Arguments
-	args = append(args, rpc.Argument{"entrypoint", rpc.DataString, "Cancel"})
-	args = append(args, rpc.Argument{"tx", rpc.DataUint64, uint64(tx)})
+	if tx > 0 {
+		args = append(args, rpc.Argument {"entrypoint", rpc.DataString, "Cancel"})
+		args = append(args, rpc.Argument {"tx", rpc.DataUint64, uint64(tx)})
+	} else {
+		args = append(args, rpc.Argument {"entrypoint", rpc.DataString, "CancelAll"})
+	}
 
 	ge, ge_valid := d.DeroEstimateGas(pair.contract, transfers, args, 0)
 	if !ge_valid || ge.Status != "OK" {
@@ -303,8 +307,12 @@ func tradeCancel(words []string) {
 		return
 	}
 
-	fmt.Printf("Cancel %s order %d\n", words[0], tx)
-	if !askContinue() {
+	if tx > 0 {
+		fmt.Printf("Cancel %s order %d\n", words[0], tx)
+	} else {
+		fmt.Printf("Cancel %s all orders\n", words[0])
+	}
+	if askContinue() == false {
 		fmt.Println("aborting...")
 		return
 	}
@@ -493,7 +501,7 @@ func tradeHistory(words []string) {
 func tradeHelp() {
 	fmt.Println("trade buy <pair> <amount> <price>")
 	fmt.Println("trade sell <pair> <amount> <price>")
-	fmt.Println("trade cancel <pair> <orderId>")
+	fmt.Println("trade cancel <pair> [<orderId> | all]")
 	fmt.Println("trade history <pair>")
 	fmt.Println("trade orders <pair>")
 	fmt.Println("trade book <pair>")
